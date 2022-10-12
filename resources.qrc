@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assets/images/fingerprint.svg</file>
+        <file>assets/images/history.svg</file>
+        <file>assets/images/logo.svg</file>
+        <file>assets/images/me_xD.png</file>
+        <file>assets/images/qr-code.svg</file>
+        <file>assets/images/request.svg</file>
+        <file>assets/images/settings.svg</file>
+        <file>assets/images/transfer.svg</file>
+        <file>assets/images/wallet.svg</file>
+        <file>assets/fonts/Cambria.ttf</file>
+        <file>assets/fonts/DelvonThinItalic-X3ZOK.ttf</file>
+        <file>assets/fonts/PastikaDemoMedium-gxlz6.ttf</file>
+        <file>assets/images/invisible.svg</file>
+        <file>assets/images/visible.svg</file>
+    </qresource>
+</RCC>
