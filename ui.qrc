@@ -4,7 +4,6 @@
         <file>ui/pages/Authentication.qml</file>
         <file>ui/pages/Home.qml</file>
         <file>ui/pages/MainWallet.qml</file>
-        <file>ui/pages/Pagee.qml</file>
         <file>ui/pages/Settings.qml</file>
         <file>ui/pages/Transfer.qml</file>
         <file>ui/components/BottomNavigationBarButton.qml</file>

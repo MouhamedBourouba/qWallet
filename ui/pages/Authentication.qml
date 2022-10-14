@@ -13,10 +13,23 @@ Page {
         return regexExp.test(email.toLowerCase())
     }
 
-    AuthenticationBackend {
+    ToolTip {
+        id: errorToast
+        y: (parent.height) - 50
+        //        anchors.bottom: parent.bottom
+        background: Rectangle { color: Qt.darker("Red", 1.7); radius: 6 }
+    }
+
+    AuthenticationRepository {
         id: authenticationBackend
-        onUserChanged: {
-            console.log("name: " + user.name + " " +  "email: " + user.email + " " +  "password: " + user.password)
+
+        onError: function(errorMessage) {
+            errorToast.text = errorMessage
+            errorToast.visible = true
+            errorToast.timeout = 1500
+        }
+        onAuthStateChanged: {
+            console.log("auth state is : " + authenticationBackend.authState)
         }
     }
 
@@ -119,10 +132,7 @@ Page {
             Layout.fillWidth: true
             Layout.topMargin: 6
             onClicked: {
-                if(loginOrRegester) authenticationBackend.login()
-                else {
-                    if(checkEmail(authenticationBackend.user.email)) authenticationBackend.createAccount()
-                }
+                authenticationBackend.createAccount()
             }
         }
         Flow {

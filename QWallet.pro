@@ -1,12 +1,13 @@
 QT += quick
+QT += network
 QT += quickcontrols2
 CONFIG += qmltypes
 
 
 SOURCES += \
-        authentication.cpp \
+        AuthenticationRepository.cpp \
         main.cpp \
-        models.cpp
+        repository.cpp
 
 resources.prefix = /$${TARGET}
 
@@ -31,5 +32,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    authentication.h \
-    models.h
+    AuthenticationRepository.h \
+    repository.h

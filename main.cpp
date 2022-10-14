@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
-    engine.load(QUrl::fromLocalFile("../QWallet/main.qml"));
+    engine.load(QUrl::fromLocalFile("./QWallet/main.qml"));
 
     return app.exec();
 }

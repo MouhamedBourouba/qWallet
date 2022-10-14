@@ -25,7 +25,7 @@ ApplicationWindow {
         source: "qrc:/assets/fonts/PastikaDemoMedium-gxlz6.ttf"
     }
 
-    Authentication {
+   Authentication {
         anchors.fill: parent
-    }
+   }
 }
