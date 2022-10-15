@@ -5,7 +5,7 @@ import "../components"
 
 Page {
     objectName: "Transfer"
-    
+
     Label {
         id: headerText
         text: "Transfer Options"
@@ -34,13 +34,37 @@ Page {
             }
         }
     }
-    
+
     Column {
         id: optionsColumn
-        
+        spacing: 16
+        //        color: "Red"
+        ListItem {
+            title: "Send With ID"
+            imageSrc: "qrc:/assets/images/fingerprint.svg"
+            imageSize: Qt.size(40, 40)
+            imageColor: Material.accent
+            backgroundColor: "#E8EFFC"
+        }
+        ListItem {
+            title: "Send With QrCode"
+            imageSrc: "qrc:/assets/images/qr-code.svg"
+            imageSize: Qt.size(40, 40)
+            imageColor: Material.accent
+            backgroundColor: "#E8EFFC"
+        }
+        ListItem {
+            title: "Make Request"
+            imageSrc: "qrc:/assets/images/request.svg"
+            imageSize: Qt.size(40, 40)
+            imageColor: Material.accent
+            backgroundColor: "#E8EFFC"
+        }
+
         anchors {
             left: parent.left
             right: parent.right
+            bottom: parent.bottom
             top: headerText.bottom
             topMargin: 16
             rightMargin: 16
@@ -48,4 +72,3 @@ Page {
         }
     }
 }
-

@@ -6,8 +6,10 @@ CONFIG += qmltypes
 
 SOURCES += \
         AuthenticationRepository.cpp \
-        main.cpp \
-        repository.cpp
+    Preferences.cpp \
+    httpmethods.cpp \
+        main.cpp
+
 
 resources.prefix = /$${TARGET}
 
@@ -33,4 +35,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     AuthenticationRepository.h \
-    repository.h
+    Constants.h \
+    Preferences.h \
+    httpmethods.h

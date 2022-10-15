@@ -8,6 +8,37 @@ Page {
 
     property bool loginOrRegester: true
 
+    Dialog {
+        id: loadingDialog
+        width: parent.width / 3
+        height: width
+        parent: Overlay.overlay
+        modal: true
+        anchors.centerIn: parent
+        closePolicy: Dialog.NoAutoClose
+//        anchors.centerIn: parent
+        enter: Transition {
+               NumberAnimation { property: "opacity"; from: 0.0; to: 1.0 }
+        }
+        contentItem:  Pane {
+            anchors.fill: parent
+            Column {
+                anchors.centerIn: parent
+                spacing: 6
+                BusyIndicator {
+                    id: busyIndicator
+                }
+                Text {
+                    text: loginOrRegester ? "Login in ..." : "Creating Account"
+                    font {
+                        family: mFont.font
+                        pointSize: 12
+                    }
+                }
+            }
+        }
+    }
+
     function checkEmail(email) {
         const regexExp = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/gi;
         return regexExp.test(email.toLowerCase())
@@ -24,12 +55,15 @@ Page {
         id: authenticationBackend
 
         onError: function(errorMessage) {
+            loadingDialog.close()
+            console.log(errorMessage)
             errorToast.text = errorMessage
             errorToast.visible = true
             errorToast.timeout = 1500
         }
-        onAuthStateChanged: {
-            console.log("auth state is : " + authenticationBackend.authState)
+        onAuthCompletedSuccessfully: {
+            loadingDialog.close()
+            loader.source = "ui/pages/Home.qml"
         }
     }
 
@@ -69,9 +103,6 @@ Page {
             id: userName
             Layout.fillWidth: true
             placeholderText: "User name"
-            onTextChanged: {
-                authenticationBackend.user.name = text
-            }
             visible: !loginOrRegester
             Material.foreground: "Black"
         }
@@ -80,16 +111,6 @@ Page {
             Layout.fillWidth: true
             placeholderText: loginOrRegester ? "Email / UserName" : "Email"
             Material.foreground: "Black"
-            onTextChanged: {
-                authenticationBackend.user.name = ""; authenticationBackend.user.email = ""
-
-                if(loginOrRegester === false) authenticationBackend.user.email = text
-                else {
-                    if (checkEmail(text)) authenticationBackend.user.email = text.toLowerCase()
-                    else authenticationBackend.user.name = text
-                }
-            }
-
         }
         TextField {
             id: userPassword
@@ -114,10 +135,6 @@ Page {
                 }
             }
 
-            onTextChanged: {
-                authenticationBackend.user.password = text
-            }
-
         }
         RoundButton {
             enabled: {
@@ -132,7 +149,18 @@ Page {
             Layout.fillWidth: true
             Layout.topMargin: 6
             onClicked: {
-                authenticationBackend.createAccount()
+                loadingDialog.open()
+
+                // screen is on register mode
+                if(!loginOrRegester) {
+                    authenticationBackend.createAccount(userIdentifire.text, userName.text, userPassword.text)
+                }
+
+                else {
+                    authenticationBackend.login(checkEmail(userIdentifire.text) ? "" : userIdentifire.text,
+                                                checkEmail(userIdentifire.text) ? userIdentifire.text : "",
+                                                userPassword.text)
+                }
             }
         }
         Flow {

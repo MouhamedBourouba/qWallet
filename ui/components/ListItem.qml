@@ -7,19 +7,30 @@ Item {
     width: parent.width
     height: 70
 
+    signal itemClicked()
+
     property alias title: title.text
     property alias subTitle: subTitle.text
     property alias imageSrc: image.source
     property alias transfermationAmount: transfermationAmount.text
+    property alias imageSize: image.sourceSize
+    property alias imageColor: image.color
+    property alias backgroundColor: background.color
 
-    RowLayout {
+    Pane {
         id: row
         anchors.fill: parent
-        spacing: 0
+        background: Rectangle { id: background; color: Material.background; radius: 16 }
+        MouseArea {
+            anchors.fill: parent
+            onPressed: { itemClicked() }
+        }
 
         RowLayout {
             spacing: 16
-            Image {
+            anchors.verticalCenter: parent.verticalCenter
+
+            IconImage {
                 id: image
                 sourceSize: Qt.size(row.height -10, row.height -10)
                 Layout.leftMargin: 6

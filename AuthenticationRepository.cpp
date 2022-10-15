@@ -2,102 +2,88 @@
 // now only god knows :=)
 
 #include "AuthenticationRepository.h"
+#include "Preferences.h"
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
-#include <QNetworkReply>
-#include <QNetworkReply>
-#include <QThread>
+#include "Constants.h"
 
 AuthenticationRepository::AuthenticationRepository(QObject *parent)
     : QObject{parent}
 {
-    m_authState = authStateEnum::IDEL;
     m_manager = new QNetworkAccessManager(this);
-    //    // https://localhost:7005/api/Authentication/CreateAcount; https://httpbin.org/post; https://localhost:7005/api/Authentication/test
+    httpMethods = new HttpMethods(this);
+    // https://localhost:7005/api/Authentication/CreateAcount; https://httpbin.org/post; https://localhost:7005/api/Authentication/test
 }
 
-AuthUser AuthenticationRepository::getAuthUser()
+void AuthenticationRepository::login(QString name, QString email, QString password)
 {
-    return m_user;
+    qDebug() << "hi iam login";
+    QUrl loginRequestUrl = QUrl(LOGIN_BASE_URL);
+
+    QJsonObject* jsonPayload = new QJsonObject();
+    (*jsonPayload)["name"] = name ;
+    (*jsonPayload)["email"] = email;
+    (*jsonPayload)["password"] = password; (*jsonPayload)["age"] = 0; (*jsonPayload)["phone"] = 0;
+    QJsonDocument* doc = new QJsonDocument(*jsonPayload);
+    m_login_reply =  httpMethods->preformPOST(loginRequestUrl, doc->toJson());
+    connect(m_login_reply, &QNetworkReply::readyRead, this, &AuthenticationRepository::validateLoginRequest);
 }
 
-void AuthenticationRepository::setAuthUser(AuthUser user)
+void AuthenticationRepository::createAccount(QString email, QString name, QString password)
 {
-    m_user = user;
-    emit userChanged();
-}
-
-void AuthenticationRepository::login()
-{
-    qInfo() << "trying to login" << m_user.name;
-}
-
-
-
-void AuthenticationRepository::createAccount()
-{
-    m_authState = authStateEnum::LOADING;
-    emit authStateChanged();
-    qDebug() << "creating account email: " << m_user.email << " name: " << m_user.name << " password: " << m_user.password;
-
-    QUrl url(QString("https://localhost:7005/api/Authentication/CreateAcount"));
+    QUrl createAccountRequestUrl(CREATE_ACCOUNT_URL);
 
     QJsonObject *jsonPayload = new QJsonObject();
-    (*jsonPayload)["name"] = m_user.name;
-    (*jsonPayload)["email"] = m_user.email;
-    (*jsonPayload)["password"] = m_user.password;
-    (*jsonPayload)["age"] = 157;
-    (*jsonPayload)["phone"] = 244;
+    (*jsonPayload)["name"] = name;
+    (*jsonPayload)["email"] = email;
+    (*jsonPayload)["password"] = password;
+    (*jsonPayload)["age"] = 0;
+    (*jsonPayload)["phone"] = 0;
     QJsonDocument *doc = new QJsonDocument(*jsonPayload);
-    performPOST(url, doc);
+    m_register_reply = httpMethods->preformPOST(createAccountRequestUrl, doc->toJson());
+    connect(m_register_reply, &QNetworkReply::readyRead, this, &AuthenticationRepository::validateRegisterRequest);
 }
 
-void AuthenticationRepository::registerRequestReadyRead()
+void AuthenticationRepository::validateLoginRequest()
 {
+    QByteArray data = validateReply(m_login_reply);
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+    Preferences settings;
+    settings.setValue("userId" ,jsonDoc["id"]);
+    settings.setValue("username" ,jsonDoc["name"]);
+    settings.setValue("email" ,jsonDoc["email"]);
+    settings.setValue("walletId" ,jsonDoc["walletid"]);
+    settings.setValue("userPhoto" ,jsonDoc["imageUrl"]);
+}
 
-    qDebug() << "register request finished";
+QByteArray AuthenticationRepository::validateReply(QNetworkReply *reply)
+{
+    qDebug() << "request finished";
 
-    if(m_register_reply->error() != QNetworkReply::NoError) {
+    if(reply->error() != QNetworkReply::NoError) {
+        qDebug() << "error: " << reply->error();
         emit error("Unknown Error");
-        return;
+        return NULL;
     }
 
-    QVariant httpCode = m_register_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    qDebug() << "register succsesfuly http_code: " << httpCode.toInt();
-    if(httpCode.toInt() >= 400 && httpCode.toInt() < 500) {
-        qDebug() << "there is an error http code in range of [400,499]";
-        auto errorMessage = QString(m_register_reply->readAll());
+    QVariant httpCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    qDebug() << "request sent http_code: " << httpCode.toInt();
+
+    if(httpCode.toInt() >= 200 && httpCode.toInt() < 300) {
+        QByteArray data = reply->readAll();
+        emit authCompletedSuccessfully();
+        return data;
+    }
+    else if(httpCode.toInt() >= 400 && httpCode.toInt() < 500) {
+        auto errorMessage = QString(reply->readAll());
+        qDebug() << "there is an error http code in range of [400,499] error: " << errorMessage;
         emit error(errorMessage);
-        return;
+        return NULL;
     }
-    else if(httpCode.toInt() >= 200 && httpCode.toInt() < 500) {
-        m_authState = authStateEnum::LogedIn;
-        emit authStateChanged();
-        return;
+    else {
+        emit error("Unknown Error");
+        return NULL;
     }
-
-    qDebug() << "WTF ...";
-    return;
-}
-
-
-void AuthenticationRepository::loginRequestReadyRead()
-{
-
-}
-
-void AuthenticationRepository::performPOST(QUrl url, QJsonDocument *doc)
-{
-    QNetworkRequest request = QNetworkRequest(url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, QString("application/json"));
-
-    // that sad but i have to ignore certificate verification
-    QSslConfiguration conf = request.sslConfiguration();
-    conf.setPeerVerifyMode(QSslSocket::VerifyNone);
-    request.setSslConfiguration(conf);
-
-    m_register_reply = m_manager->post(request, doc->toJson());
-    connect(m_register_reply, &QNetworkReply::readyRead, this, &AuthenticationRepository::registerRequestReadyRead);
 }
